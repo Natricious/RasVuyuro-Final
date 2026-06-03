@@ -1,10 +1,12 @@
+import { Link } from 'react-router-dom'
+
 const CONSTELLATIONS = [
-  { name: 'The Quiet Hours',   feeling: 'stillness after noise',         accent: '#7eb8d4', count: 6,  pos: { left: '1%',  top: '2%'  } },
-  { name: 'The Long Night',    feeling: 'when darkness is beautiful',     accent: '#9b7fd4', count: 8,  pos: { left: '55%', top: '6%'  } },
-  { name: 'The Burning World', feeling: 'urgency and consequence',        accent: '#d4826a', count: 7,  pos: { left: '26%', top: '38%' } },
-  { name: 'The Open Road',     feeling: 'motion and possibility',         accent: '#7dd4a0', count: 5,  pos: { left: '72%', top: '44%' } },
-  { name: 'The Mirror',        feeling: 'recognition and grief',          accent: '#d4c26a', count: 9,  pos: { left: '2%',  top: '68%' } },
-  { name: 'The Strange',       feeling: 'wonder at the edge of reason',   accent: '#d47eb8', count: 6,  pos: { left: '49%', top: '74%' } },
+  { name: 'The Quiet Hours',   feeling: 'stillness after noise',         accent: '#7eb8d4', count: 6,  slug: 'quiet-hours',   pos: { left: '1%',  top: '2%'  } },
+  { name: 'The Long Night',    feeling: 'when darkness is beautiful',     accent: '#9b7fd4', count: 8,  slug: 'long-night',    pos: { left: '55%', top: '6%'  } },
+  { name: 'The Burning World', feeling: 'urgency and consequence',        accent: '#d4826a', count: 7,  slug: 'burning-world', pos: { left: '26%', top: '38%' } },
+  { name: 'The Open Road',     feeling: 'motion and possibility',         accent: '#7dd4a0', count: 5,  slug: 'open-road',     pos: { left: '72%', top: '44%' } },
+  { name: 'The Mirror',        feeling: 'recognition and grief',          accent: '#d4c26a', count: 9,  slug: 'mirror',        pos: { left: '2%',  top: '68%' } },
+  { name: 'The Strange',       feeling: 'wonder at the edge of reason',   accent: '#d47eb8', count: 6,  slug: 'strange',       pos: { left: '49%', top: '74%' } },
 ]
 
 const GLYPHS = [
@@ -57,12 +59,18 @@ export default function CollectionField() {
 
         <div className="coll-field">
           {CONSTELLATIONS.map((c, i) => (
-            <div key={c.name} className="coll-node" style={c.pos}>
-              <ConstellationGlyph glyph={GLYPHS[i]} accent={c.accent} />
-              <div className="coll-name">{c.name}</div>
-              <div className="coll-feeling">{c.feeling}</div>
-              <div className="coll-count">{c.count} stars · travel in →</div>
-            </div>
+            <Link
+              key={c.name}
+              to={`/collections/${c.slug}`}
+              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+            >
+              <div className="coll-node" style={c.pos}>
+                <ConstellationGlyph glyph={GLYPHS[i]} accent={c.accent} />
+                <div className="coll-name">{c.name}</div>
+                <div className="coll-feeling">{c.feeling}</div>
+                <div className="coll-count">{c.count} stars · travel in →</div>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

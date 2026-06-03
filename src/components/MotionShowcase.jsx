@@ -9,13 +9,15 @@ const DRIFT_DOTS = [
 const TRACE_PTS = [[15,60],[36,24],[62,44],[88,18],[108,50]]
 const ALIGN_PTS = [[20,40],[56,18],[92,40],[72,66],[38,66]]
 
-const ZOOM_DOTS = [
-  { cx: 60, cy: 40, dx:  0,   dy:  0,   dur: 2.2, delay: 0    },
-  { cx: 40, cy: 28, dx: -22,  dy: -14,  dur: 2.2, delay: 0.3  },
-  { cx: 80, cy: 52, dx:  22,  dy:  14,  dur: 2.2, delay: 0.15 },
-  { cx: 28, cy: 55, dx: -34,  dy:  18,  dur: 2.2, delay: 0.45 },
-  { cx: 92, cy: 24, dx:  34,  dy: -18,  dur: 2.2, delay: 0.6  },
-  { cx: 50, cy: 62, dx: -12,  dy:  24,  dur: 2.2, delay: 0.2  },
+const TRAVEL_DOTS = [
+  { dx:  32, dy:   0, delay: 0    },
+  { dx:  23, dy: -22, delay: 0.3  },
+  { dx:   0, dy: -30, delay: 0.6  },
+  { dx: -23, dy: -22, delay: 0.9  },
+  { dx: -32, dy:   0, delay: 1.2  },
+  { dx: -23, dy:  22, delay: 1.5  },
+  { dx:   0, dy:  30, delay: 1.8  },
+  { dx:  23, dy:  22, delay: 2.1  },
 ]
 
 function DriftDemo() {
@@ -74,11 +76,22 @@ function TraceDemo() {
 function BloomDemo() {
   return (
     <svg viewBox="0 0 120 80" width="100%" height={80}>
+      <style>{`
+        @keyframes bloomScale {
+          from { transform: scale(0.1); opacity: 0.8; }
+          to   { transform: scale(6);   opacity: 0;   }
+        }
+      `}</style>
       <circle cx="60" cy="40" r="5" fill="#c9a14a" opacity="0.9" />
       {[0, 0.65, 1.3].map((delay, i) => (
         <circle key={i} cx="60" cy="40" r="6" fill="none"
           stroke="#c9a14a" strokeWidth="1.2"
-          style={{ animation: `bloom 2s ease-out infinite`, animationDelay: `${delay}s` }}
+          style={{
+            animation: `bloomScale 2s ease-out infinite`,
+            animationDelay: `${delay}s`,
+            transformBox: 'fill-box',
+            transformOrigin: 'center',
+          }}
         />
       ))}
     </svg>
@@ -87,18 +100,27 @@ function BloomDemo() {
 
 function TravelDemo() {
   return (
-    <svg viewBox="0 0 120 80" width="100%" height={80}>
-      {ZOOM_DOTS.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r="1.8" fill="#c9a14a" opacity="0.7"
+    <svg viewBox="0 0 120 80" width="100%" height={80} style={{ overflow: 'hidden' }}>
+      <style>{`
+        @keyframes travelZoom {
+          0%   { transform: translate(0, 0) scale(0.1); opacity: 0; }
+          15%  { opacity: 1; }
+          100% { transform: translate(calc(var(--dx) * 1px), calc(var(--dy) * 1px)) scale(1.5); opacity: 0; }
+        }
+      `}</style>
+      {TRAVEL_DOTS.map((d, i) => (
+        <circle key={i} cx="60" cy="40" r="2" fill="#c9a14a"
           style={{
-            animation: `driftStar ${d.dur}s ease-in-out infinite alternate`,
+            '--dx': d.dx,
+            '--dy': d.dy,
+            animation: 'travelZoom 2.4s linear infinite',
             animationDelay: `${d.delay}s`,
             transformBox: 'fill-box',
             transformOrigin: 'center',
           }}
         />
       ))}
-      <circle cx="60" cy="40" r="3.5" fill="#c9a14a" opacity="0.95" />
+      <circle cx="60" cy="40" r="3" fill="#c9a14a" opacity="0.9" />
     </svg>
   )
 }
