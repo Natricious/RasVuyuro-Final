@@ -15,10 +15,30 @@ export function useCollections() {
         .eq('is_visible', true)
         .order('display_order', { ascending: true })
       if (cancelled) return
-      if (error) setError(error)
-      else setCollections(
-        (data || []).map(c => ({ ...c, name: c.title_en, description: c.description_en }))
-      )
+      if (error) { setError(error); setLoading(false); return }
+
+      const { data: allMovies } = await supabase
+        .from('movies')
+        .select('collections')
+      if (cancelled) return
+
+      const countMap = {}
+      if (allMovies) {
+        allMovies.forEach(movie => {
+          const cols = Array.isArray(movie.collections) ? movie.collections : []
+          cols.forEach(slug => {
+            countMap[slug] = (countMap[slug] || 0) + 1
+          })
+        })
+      }
+
+      const enriched = (data || []).map(col => ({
+        ...col,
+        name: col.title_en,
+        description: col.description_en,
+        movieCount: countMap[col.slug] || 0,
+      }))
+      setCollections(enriched)
       setLoading(false)
     }
     fetch()

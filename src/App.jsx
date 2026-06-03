@@ -41,7 +41,7 @@ function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home openWizard={openWizard} />} />
-        <Route path="/movies" element={<Browse />} />
+        <Route path="/movies" element={<Browse openWizard={openWizard} />} />
         <Route path="/movie/:id" element={<MovieDetail openWizard={openWizard} />} />
         <Route path="/collections" element={<Collections openWizard={openWizard} />} />
         <Route path="/collections/:slug" element={<CollectionDetail openWizard={openWizard} />} />

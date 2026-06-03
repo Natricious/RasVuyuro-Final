@@ -89,7 +89,7 @@ function ConstellationCard({ col, index }) {
             textTransform: 'uppercase', letterSpacing: '0.2em',
             color: 'var(--ink-faint)',
           }}>
-            — stars
+            {col.movieCount} {col.movieCount === 1 ? 'star' : 'stars'}
           </span>
           <span style={{
             color: hovered ? 'var(--gold)' : 'var(--ink-faint)',
