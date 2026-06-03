@@ -76,7 +76,7 @@ function StarCard({ star, accent, to }) {
   )
 }
 
-export default function CollectionDetail() {
+export default function CollectionDetail({ openWizard }) {
   const { slug } = useParams()
   const constellation = CONSTELLATIONS.find(c => c.slug === slug)
 
@@ -97,7 +97,7 @@ export default function CollectionDetail() {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', textAlign: 'center', gap: 16,
       }}>
-        <Nav onBeginAlignment={() => {}} />
+        <Nav onBeginAlignment={openWizard} />
         <div className="eyebrow">404</div>
         <h2 style={{ fontFamily: 'var(--display)', fontWeight: 300, fontSize: 'clamp(28px,4vw,48px)', color: 'var(--ink)' }}>
           This constellation does not exist.
@@ -113,7 +113,7 @@ export default function CollectionDetail() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
-      <Nav onBeginAlignment={() => {}} />
+      <Nav onBeginAlignment={openWizard} />
 
       {/* ── Collection Hero ── */}
       <section style={{

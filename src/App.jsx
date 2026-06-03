@@ -1,9 +1,11 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import SkyEngine from './engine/SkyEngine'
+import WizardPanel from './components/WizardPanel'
 import Home from './pages/Home'
 import Browse from './pages/Browse'
 import MovieDetail from './pages/MovieDetail'
+import Collections from './pages/Collections'
 import CollectionDetail from './pages/CollectionDetail'
 import Profile from './pages/Profile'
 import NotFound from './pages/NotFound'
@@ -18,6 +20,8 @@ function ScrollToTop() {
 
 function App() {
   const canvasRef = useRef(null)
+  const [wizardOpen, setWizardOpen] = useState(false)
+  const openWizard = () => setWizardOpen(true)
 
   useEffect(() => {
     const engine = new SkyEngine(canvasRef.current)
@@ -36,14 +40,15 @@ function App() {
       <div className="grain" />
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home openWizard={openWizard} />} />
         <Route path="/movies" element={<Browse />} />
-        <Route path="/movie/:id" element={<MovieDetail />} />
-        <Route path="/collections" element={<CollectionDetail />} />
-        <Route path="/collections/:slug" element={<CollectionDetail />} />
+        <Route path="/movie/:id" element={<MovieDetail openWizard={openWizard} />} />
+        <Route path="/collections" element={<Collections openWizard={openWizard} />} />
+        <Route path="/collections/:slug" element={<CollectionDetail openWizard={openWizard} />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <WizardPanel isOpen={wizardOpen} onClose={() => setWizardOpen(false)} />
     </BrowserRouter>
   )
 }

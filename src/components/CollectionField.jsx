@@ -63,9 +63,9 @@ export default function CollectionField() {
             <Link
               key={c.slug}
               to={`/collections/${c.slug}`}
-              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+              style={{ ...POSITIONS[i], position: 'absolute', display: 'block', textDecoration: 'none', color: 'inherit' }}
             >
-              <div className="coll-node" style={POSITIONS[i]}>
+              <div className="coll-node">
                 <ConstellationGlyph glyph={GLYPHS[i]} accent={c.accent} />
                 <div className="coll-name">{c.name}</div>
                 <div className="coll-feeling">{c.feeling}</div>

@@ -92,7 +92,7 @@ function NearbyCard({ star }) {
   )
 }
 
-export default function MovieDetail() {
+export default function MovieDetail({ openWizard }) {
   useEffect(() => {
     const els = document.querySelectorAll('.obs')
     const observer = new IntersectionObserver(
@@ -107,7 +107,7 @@ export default function MovieDetail() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
-      <Nav onBeginAlignment={() => {}} />
+      <Nav onBeginAlignment={openWizard} />
 
       {/* ── Movie Hero ── */}
       <section style={{
