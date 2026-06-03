@@ -1,25 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-
-const PLACEHOLDER = {
-  name: 'The Quiet Hours',
-  feeling: 'stillness after noise',
-  accent: '#7eb8d4',
-  description: 'These are films that ask nothing of you except your presence. They arrive quietly and leave something behind — a mood, a light, a silence that feels earned.',
-  starCount: 6,
-  atmosphericText: 'Enter when the world has been too loud. Leave when you remember what stillness feels like.',
-}
-
-const STARS = [
-  { title: 'A placeholder star',   year: '2001', director: 'A. Director', feeling: 'deeply still'    },
-  { title: 'Another star waits',   year: '1998', director: 'B. Director', feeling: 'quietly powerful' },
-  { title: 'The third alignment',  year: '2010', director: 'C. Director', feeling: 'melancholic'     },
-  { title: 'What the night holds', year: '2005', director: 'D. Director', feeling: 'tender'          },
-  { title: 'Before the morning',   year: '1994', director: 'E. Director', feeling: 'contemplative'   },
-  { title: 'The long silence',     year: '2018', director: 'F. Director', feeling: 'haunting'        },
-]
+import CONSTELLATIONS from '../data/constellations'
 
 const GLYPH_DOTS  = [[48,188],[96,108],[160,68],[224,104],[280,52],[312,152]]
 const GLYPH_LINES = [[0,1],[1,2],[2,3],[3,4],[4,5]]
@@ -88,6 +71,9 @@ function StarCard({ star, accent }) {
 }
 
 export default function CollectionDetail() {
+  const { slug } = useParams()
+  const constellation = CONSTELLATIONS.find(c => c.slug === slug)
+
   useEffect(() => {
     const els = document.querySelectorAll('.obs')
     const observer = new IntersectionObserver(
@@ -96,9 +82,28 @@ export default function CollectionDetail() {
     )
     els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
-  }, [])
+  }, [slug])
 
-  const { name, feeling, accent, description, starCount, atmosphericText } = PLACEHOLDER
+  if (!constellation) {
+    return (
+      <div style={{
+        position: 'relative', minHeight: '100vh', zIndex: 1,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', textAlign: 'center', gap: 16,
+      }}>
+        <Nav onBeginAlignment={() => {}} />
+        <div className="eyebrow">404</div>
+        <h2 style={{ fontFamily: 'var(--display)', fontWeight: 300, fontSize: 'clamp(28px,4vw,48px)', color: 'var(--ink)' }}>
+          This constellation does not exist.
+        </h2>
+        <Link to="/" style={{ color: 'var(--gold)', fontFamily: 'var(--sans)', fontSize: 13, marginTop: 8 }}>
+          ← Return to the sky
+        </Link>
+      </div>
+    )
+  }
+
+  const { name, feeling, accent, description, atmosphericText, stars } = constellation
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
@@ -166,7 +171,6 @@ export default function CollectionDetail() {
             gap: 80,
             alignItems: 'center',
           }}>
-            {/* SVG glyph */}
             <div>
               <svg viewBox="0 0 320 240" style={{ width: '100%', maxWidth: 320, display: 'block' }}>
                 {GLYPH_LINES.map(([a, b], i) => (
@@ -183,14 +187,13 @@ export default function CollectionDetail() {
               </svg>
             </div>
 
-            {/* Stats */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="eyebrow eyebrow--mute">Overview</div>
               <div style={{
                 fontFamily: 'var(--display)', fontSize: 48,
                 fontWeight: 300, color: accent, lineHeight: 1,
               }}>
-                {starCount} stars in this constellation
+                {stars.length} stars in this constellation
               </div>
               <p style={{
                 fontFamily: 'var(--sans)', color: 'var(--ink-soft)',
@@ -228,7 +231,7 @@ export default function CollectionDetail() {
             borderRadius: 16,
             overflow: 'hidden',
           }}>
-            {STARS.map(star => (
+            {stars.map(star => (
               <StarCard key={star.title} star={star} accent={accent} />
             ))}
           </div>
