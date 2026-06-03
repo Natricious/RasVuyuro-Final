@@ -9,7 +9,7 @@ export default function Nav({ onBeginAlignment }) {
       </Link>
       <div className="nav-links">
         <Link to="/movies" className="nav-link">Wander</Link>
-        <a href="#collections" className="nav-link">Constellations</a>
+        <Link to="/collections" className="nav-link">Constellations</Link>
         <button className="nav-link nav-pill" onClick={onBeginAlignment}>Begin the Alignment</button>
       </div>
     </nav>

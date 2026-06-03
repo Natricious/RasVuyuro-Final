@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Hero({ onBeginAlignment }) {
   return (
     <section className="hero">
@@ -18,7 +20,7 @@ export default function Hero({ onBeginAlignment }) {
 
       <div className="hero-cta">
         <button className="btn btn-gold" onClick={onBeginAlignment}>Begin the Alignment</button>
-        <button className="hero-ghost">or wander the sky →</button>
+        <Link to="/movies" className="hero-ghost" style={{ textDecoration: 'none' }}>or wander the sky →</Link>
       </div>
 
       <div className="hero-stats">

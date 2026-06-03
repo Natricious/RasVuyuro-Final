@@ -20,7 +20,7 @@ export default function Footer() {
               <h6>Discover</h6>
               <Link to="/profile">My Sky</Link>
               <Link to="/movies">Wander</Link>
-              <a href="#collections">Align Now</a>
+              <Link to="/collections">Align Now</Link>
             </div>
           </div>
         </div>

@@ -125,7 +125,7 @@ export default function CollectionDetail({ openWizard }) {
       }}>
         <div className="shell">
           <Link
-            to="/"
+            to="/collections"
             style={{
               display: 'inline-block', marginBottom: 48,
               fontFamily: 'var(--sans)', fontSize: 12,
