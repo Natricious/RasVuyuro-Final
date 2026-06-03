@@ -14,59 +14,65 @@ function accentAlpha(hex, a) {
   return `rgba(${r},${g},${b},${a})`
 }
 
-function StarCard({ star, accent }) {
+function StarCard({ star, accent, to }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: hovered ? 'var(--bg-2)' : 'var(--bg-1)',
-        padding: '28px 24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        transition: 'background 0.3s',
-        cursor: 'pointer',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{
-          width: 4, height: 4, borderRadius: '50%',
-          background: accent,
-          boxShadow: `0 0 6px 1px ${accentAlpha(accent, 0.5)}`,
-          flexShrink: 0,
-        }} />
-        <span style={{
-          fontFamily: 'var(--sans)', fontSize: 12,
-          textTransform: 'uppercase', letterSpacing: '0.2em',
-          color: 'var(--ink-mute)',
+    <Link to={to} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          background: hovered ? 'var(--bg-2)' : 'var(--bg-1)',
+          padding: '28px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          cursor: 'pointer',
+          transition: 'background 0.3s, transform 0.3s var(--ease), box-shadow 0.3s var(--ease)',
+          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+          boxShadow: hovered
+            ? `0 8px 32px -8px ${accent}40, inset 0 0 0 1px ${accent}60`
+            : 'inset 0 0 0 1px transparent',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            width: 4, height: 4, borderRadius: '50%',
+            background: accent,
+            boxShadow: `0 0 6px 1px ${accentAlpha(accent, 0.5)}`,
+            flexShrink: 0,
+          }} />
+          <span style={{
+            fontFamily: 'var(--sans)', fontSize: 12,
+            textTransform: 'uppercase', letterSpacing: '0.2em',
+            color: 'var(--ink-mute)',
+          }}>
+            {star.year}
+          </span>
+        </div>
+
+        <div style={{
+          fontFamily: 'var(--display)', fontWeight: 300,
+          fontSize: 22, lineHeight: 1.2, color: 'var(--ink)',
         }}>
-          {star.year}
-        </span>
-      </div>
+          {star.title}
+        </div>
 
-      <div style={{
-        fontFamily: 'var(--display)', fontWeight: 300,
-        fontSize: 22, lineHeight: 1.2, color: 'var(--ink)',
-      }}>
-        {star.title}
-      </div>
+        <div style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink-mute)' }}>
+          {star.director}
+        </div>
 
-      <div style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink-mute)' }}>
-        {star.director}
+        <div style={{
+          display: 'inline-block', alignSelf: 'flex-start', marginTop: 8,
+          padding: '4px 12px',
+          border: `1px solid ${accentAlpha(accent, 0.4)}`,
+          borderRadius: 999, fontSize: 11, color: accent,
+          letterSpacing: '0.1em', fontFamily: 'var(--sans)',
+        }}>
+          {star.feeling}
+        </div>
       </div>
-
-      <div style={{
-        display: 'inline-block', alignSelf: 'flex-start', marginTop: 8,
-        padding: '4px 12px',
-        border: `1px solid ${accentAlpha(accent, 0.4)}`,
-        borderRadius: 999, fontSize: 11, color: accent,
-        letterSpacing: '0.1em', fontFamily: 'var(--sans)',
-      }}>
-        {star.feeling}
-      </div>
-    </div>
+    </Link>
   )
 }
 
@@ -206,6 +212,21 @@ export default function CollectionDetail() {
         </div>
       </section>
 
+      {/* ── Editorial Introduction ── */}
+      <div className="shell" style={{ padding: '0 0 60px' }}>
+        <p className="obs" style={{
+          fontFamily: 'var(--display)',
+          fontStyle: 'italic',
+          fontSize: 'clamp(18px,2.5vw,26px)',
+          fontWeight: 300,
+          color: 'var(--ink-soft)',
+          maxWidth: '48ch',
+          lineHeight: 1.6,
+        }}>
+          Every constellation tells a different story. These are the stars that shape this one.
+        </p>
+      </div>
+
       {/* ── Stars Section ── */}
       <section style={{ padding: '80px 0 120px' }}>
         <div className="shell">
@@ -220,6 +241,15 @@ export default function CollectionDetail() {
               Each one was placed here by feeling, not genre.
             </p>
             <div className="gold-rule" style={{ margin: '32px 0' }} />
+            <p style={{
+              color: 'var(--ink-mute)',
+              fontSize: '13px',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              marginBottom: '32px',
+            }}>
+              "{stars.length} stars await in this constellation."
+            </p>
           </div>
 
           <div className="obs" style={{
@@ -231,8 +261,13 @@ export default function CollectionDetail() {
             borderRadius: 16,
             overflow: 'hidden',
           }}>
-            {stars.map(star => (
-              <StarCard key={star.title} star={star} accent={accent} />
+            {stars.map((star, index) => (
+              <StarCard
+                key={star.title}
+                star={star}
+                accent={accent}
+                to={`/movie/${slug}-${index}`}
+              />
             ))}
           </div>
         </div>
