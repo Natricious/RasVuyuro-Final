@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
+import { useMovie } from '../hooks/useMovie'
 
-const MOVIE = {
-  title: 'A Film Yet to Be Named',
-  year: '2001',
-  director: 'A. Director',
-  feeling: 'deeply still',
-  accent: '#7eb8d4',
-  description: 'This film arrives quietly and asks nothing except your full attention. It moves at the pace of thought — unhurried, precise, alive to the texture of ordinary moments that turn out to be extraordinary.',
-  why: "Some films explain themselves. This one doesn't need to. It trusts you to sit inside it, to let its logic work on you slowly, the way light does when it enters a room at a certain angle and changes everything.",
-  constellation: { name: 'The Quiet Hours', slug: 'quiet-hours' },
-}
-
-const NEARBY = [
-  { title: 'Another Quiet Film', year: '1998', director: 'B. Director', feeling: 'contemplative', slug: 'quiet-hours', index: 1 },
-  { title: 'The Still Hours',    year: '2010', director: 'C. Director', feeling: 'melancholic',   slug: 'quiet-hours', index: 2 },
-  { title: 'What Remains',       year: '2005', director: 'D. Director', feeling: 'tender',        slug: 'quiet-hours', index: 3 },
-]
+const ACCENTS = ['#7eb8d4','#9b7fd4','#d4826a','#7dd4a0','#d4c26a','#d47eb8']
 
 const GLYPH_DOTS  = [[28,148],[68,88],[120,54],[176,84],[216,44],[236,118]]
 const GLYPH_LINES = [[0,1],[1,2],[2,3],[3,4],[4,5]]
+
+function slugToAccent(slug) {
+  if (!slug) return '#c9a14a'
+  let h = 0
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0
+  return ACCENTS[h % ACCENTS.length]
+}
+
+function slugToName(slug) {
+  if (!slug) return ''
+  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
 
 function accentAlpha(hex, a) {
   const r = parseInt(hex.slice(1, 3), 16)
@@ -30,11 +28,11 @@ function accentAlpha(hex, a) {
   return `rgba(${r},${g},${b},${a})`
 }
 
-function NearbyCard({ star }) {
+function NearbyCard({ star, accent }) {
   const [hovered, setHovered] = useState(false)
   return (
     <Link
-      to={`/movie/${star.slug}-${star.index}`}
+      to={`/movie/${star.id}`}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
     >
       <div
@@ -54,8 +52,8 @@ function NearbyCard({ star }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
             width: 4, height: 4, borderRadius: '50%',
-            background: MOVIE.accent,
-            boxShadow: `0 0 6px 1px ${accentAlpha(MOVIE.accent, 0.5)}`,
+            background: accent,
+            boxShadow: `0 0 6px 1px ${accentAlpha(accent, 0.5)}`,
             flexShrink: 0,
           }} />
           <span style={{
@@ -81,8 +79,8 @@ function NearbyCard({ star }) {
         <div style={{
           display: 'inline-block', alignSelf: 'flex-start', marginTop: 8,
           padding: '4px 12px',
-          border: `1px solid ${accentAlpha(MOVIE.accent, 0.4)}`,
-          borderRadius: 999, fontSize: 11, color: MOVIE.accent,
+          border: `1px solid ${accentAlpha(accent, 0.4)}`,
+          borderRadius: 999, fontSize: 11, color: accent,
           letterSpacing: '0.1em', fontFamily: 'var(--sans)',
         }}>
           {star.feeling}
@@ -92,7 +90,16 @@ function NearbyCard({ star }) {
   )
 }
 
+const STATE_STYLE = {
+  position: 'relative', minHeight: '100vh', zIndex: 1,
+  display: 'flex', flexDirection: 'column', alignItems: 'center',
+  justifyContent: 'center', textAlign: 'center', gap: 16,
+}
+
 export default function MovieDetail({ openWizard }) {
+  const { id } = useParams()
+  const { movie, nearby, loading, error } = useMovie(id)
+
   useEffect(() => {
     const els = document.querySelectorAll('.obs')
     const observer = new IntersectionObserver(
@@ -101,9 +108,52 @@ export default function MovieDetail({ openWizard }) {
     )
     els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
-  }, [])
+  }, [loading])
 
-  const { title, year, director, feeling, accent, description, why, constellation } = MOVIE
+  if (loading) {
+    return (
+      <div style={STATE_STYLE}>
+        <Nav onBeginAlignment={openWizard} />
+        <p style={{
+          color: 'var(--ink-mute)', fontFamily: 'var(--sans)',
+          fontSize: '13px', letterSpacing: '0.2em', textTransform: 'uppercase',
+        }}>
+          Locating this star…
+        </p>
+      </div>
+    )
+  }
+
+  if (error || !movie) {
+    return (
+      <div style={STATE_STYLE}>
+        <Nav onBeginAlignment={openWizard} />
+        <div className="eyebrow">404</div>
+        <h2 style={{ fontFamily: 'var(--display)', fontWeight: 300, fontSize: 'clamp(28px,4vw,48px)', color: 'var(--ink)' }}>
+          This star does not exist.
+        </h2>
+        <Link to="/collections" className="btn btn-ghost" style={{ marginTop: 24, display: 'inline-block' }}>
+          Return to the sky
+        </Link>
+      </div>
+    )
+  }
+
+  const firstSlug = Array.isArray(movie.collections) ? movie.collections[0] : (movie.collections || null)
+  const accent = slugToAccent(firstSlug)
+  const constellationName = firstSlug ? slugToName(firstSlug) : 'The Sky'
+  const backTo = firstSlug ? `/collections/${firstSlug}` : '/collections'
+
+  const title = movie.title
+  const year = String(movie.year ?? '')
+  const director = movie.genres
+    ? (Array.isArray(movie.genres) ? movie.genres.slice(0, 2).join(', ') : movie.genres)
+    : '—'
+  const feeling = movie.tone
+    ? (Array.isArray(movie.tone) ? movie.tone[0] : movie.tone)
+    : '—'
+  const description = movie.description_ka || movie.description || ''
+  const why = movie.description || movie.description_ka || ''
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
@@ -118,16 +168,31 @@ export default function MovieDetail({ openWizard }) {
         padding: '160px 0 80px',
         position: 'relative',
       }}>
+        {/* Poster background */}
+        {movie.poster && (
+          <img
+            src={movie.poster}
+            alt=""
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover', opacity: 0.15, zIndex: 0,
+              maskImage: 'linear-gradient(to right, transparent, black 30%, black 70%, transparent)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 30%, black 70%, transparent)',
+            }}
+          />
+        )}
+
         {/* Accent radial glow */}
         <div style={{
-          position: 'absolute', inset: 0,
+          position: 'absolute', inset: 0, zIndex: 1,
           background: `radial-gradient(ellipse 60% 50% at 30% 60%, ${accentAlpha(accent, 0.08)}, transparent 70%)`,
           pointerEvents: 'none',
         }} />
 
-        <div className="shell">
+        <div className="shell" style={{ position: 'relative', zIndex: 2 }}>
           <Link
-            to={`/collections/${constellation.slug}`}
+            to={backTo}
             style={{
               display: 'inline-block', marginBottom: 48,
               fontFamily: 'var(--sans)', fontSize: 12,
@@ -138,7 +203,7 @@ export default function MovieDetail({ openWizard }) {
             onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--ink-mute)'}
           >
-            ← {constellation.name}
+            ← {constellationName}
           </Link>
 
           <div style={{
@@ -156,8 +221,7 @@ export default function MovieDetail({ openWizard }) {
             fontFamily: 'var(--display)', fontWeight: 300,
             fontSize: 'clamp(42px,7vw,100px)',
             lineHeight: 0.94, letterSpacing: '-0.02em',
-            color: 'var(--ink)',
-            display: 'block',
+            color: 'var(--ink)', display: 'block',
           }}>
             {title}
           </h1>
@@ -219,14 +283,13 @@ export default function MovieDetail({ openWizard }) {
             alignItems: 'center',
             marginTop: 60,
           }}>
-            {/* Left — constellation info */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div className="eyebrow eyebrow--mute">Part of</div>
               <div style={{
                 fontFamily: 'var(--display)', fontWeight: 300,
                 fontSize: 36, color: 'var(--ink)', lineHeight: 1.1,
               }}>
-                {constellation.name}
+                {constellationName}
               </div>
               <p style={{
                 fontFamily: 'var(--display)', fontStyle: 'italic',
@@ -235,7 +298,7 @@ export default function MovieDetail({ openWizard }) {
                 {feeling}
               </p>
               <Link
-                to={`/collections/${constellation.slug}`}
+                to={backTo}
                 className="btn btn-ghost"
                 style={{ marginTop: 24, display: 'inline-block' }}
               >
@@ -243,7 +306,6 @@ export default function MovieDetail({ openWizard }) {
               </Link>
             </div>
 
-            {/* Right — SVG glyph */}
             <div>
               <svg viewBox="0 0 240 180" style={{ width: '100%', maxWidth: 240, display: 'block' }}>
                 {GLYPH_LINES.map(([a, b], i) => (
@@ -263,35 +325,49 @@ export default function MovieDetail({ openWizard }) {
         </div>
       </section>
 
-      {/* ── Nearby Stars ── */}
-      <section style={{ padding: '80px 0 120px' }}>
-        <div className="shell">
-          <div className="obs">
-            <h3 style={{
-              fontFamily: 'var(--display)', fontWeight: 300,
-              fontSize: 'clamp(24px,3vw,40px)', color: 'var(--ink)',
-            }}>
-              Nearby stars
-            </h3>
-            <p style={{ fontFamily: 'var(--sans)', color: 'var(--ink-mute)', fontSize: 14, marginTop: 8 }}>
-              Other films from the same constellation.
-            </p>
-            <div className="gold-rule" style={{ margin: '28px 0' }} />
-          </div>
+      {/* ── Nearby Stars (hidden if empty) ── */}
+      {nearby.length > 0 && (
+        <section style={{ padding: '80px 0 120px' }}>
+          <div className="shell">
+            <div className="obs">
+              <h3 style={{
+                fontFamily: 'var(--display)', fontWeight: 300,
+                fontSize: 'clamp(24px,3vw,40px)', color: 'var(--ink)',
+              }}>
+                Nearby stars
+              </h3>
+              <p style={{ fontFamily: 'var(--sans)', color: 'var(--ink-mute)', fontSize: 14, marginTop: 8 }}>
+                Other films from the same constellation.
+              </p>
+              <div className="gold-rule" style={{ margin: '28px 0' }} />
+            </div>
 
-          <div className="obs" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 1,
-            background: 'var(--line)',
-            border: '1px solid var(--line)',
-            borderRadius: 16,
-            overflow: 'hidden',
-          }}>
-            {NEARBY.map(star => <NearbyCard key={star.title} star={star} />)}
+            <div className="obs" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 1,
+              background: 'var(--line)',
+              border: '1px solid var(--line)',
+              borderRadius: 16,
+              overflow: 'hidden',
+            }}>
+              {nearby.map(n => (
+                <NearbyCard
+                  key={n.id}
+                  accent={accent}
+                  star={{
+                    id: n.id,
+                    title: n.title,
+                    year: String(n.year ?? ''),
+                    director: n.genres?.[0] ?? '—',
+                    feeling: Array.isArray(n.tone) ? n.tone[0] : (n.tone ?? '—'),
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
     </div>

@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import CONSTELLATIONS from '../data/constellations'
+import { useCollection } from '../hooks/useCollection'
+
+const ACCENTS = ['#7eb8d4','#9b7fd4','#d4826a','#7dd4a0','#d4c26a','#d47eb8']
 
 const GLYPH_DOTS  = [[48,188],[96,108],[160,68],[224,104],[280,52],[312,152]]
 const GLYPH_LINES = [[0,1],[1,2],[2,3],[3,4],[4,5]]
@@ -76,9 +78,20 @@ function StarCard({ star, accent, to }) {
   )
 }
 
+const STATE_STYLE = {
+  position: 'relative', minHeight: '100vh', zIndex: 1,
+  display: 'flex', flexDirection: 'column', alignItems: 'center',
+  justifyContent: 'center', textAlign: 'center', gap: 16,
+}
+
+const STATUS_TEXT = {
+  color: 'var(--ink-mute)', fontFamily: 'var(--sans)',
+  fontSize: '13px', letterSpacing: '0.2em', textTransform: 'uppercase',
+}
+
 export default function CollectionDetail({ openWizard }) {
   const { slug } = useParams()
-  const constellation = CONSTELLATIONS.find(c => c.slug === slug)
+  const { collection, movies, loading, error } = useCollection(slug)
 
   useEffect(() => {
     const els = document.querySelectorAll('.obs')
@@ -88,28 +101,37 @@ export default function CollectionDetail({ openWizard }) {
     )
     els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
-  }, [slug])
+  }, [loading])
 
-  if (!constellation) {
+  if (loading) {
     return (
-      <div style={{
-        position: 'relative', minHeight: '100vh', zIndex: 1,
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', textAlign: 'center', gap: 16,
-      }}>
+      <div style={STATE_STYLE}>
+        <Nav onBeginAlignment={openWizard} />
+        <p style={STATUS_TEXT}>Aligning the stars…</p>
+      </div>
+    )
+  }
+
+  if (error || !collection) {
+    return (
+      <div style={STATE_STYLE}>
         <Nav onBeginAlignment={openWizard} />
         <div className="eyebrow">404</div>
         <h2 style={{ fontFamily: 'var(--display)', fontWeight: 300, fontSize: 'clamp(28px,4vw,48px)', color: 'var(--ink)' }}>
           This constellation does not exist.
         </h2>
-        <Link to="/" style={{ color: 'var(--gold)', fontFamily: 'var(--sans)', fontSize: 13, marginTop: 8 }}>
+        <Link to="/collections" style={{ color: 'var(--gold)', fontFamily: 'var(--sans)', fontSize: 13, marginTop: 8 }}>
           ← Return to the sky
         </Link>
       </div>
     )
   }
 
-  const { name, feeling, accent, description, atmosphericText, stars } = constellation
+  const accent = ACCENTS[((collection.display_order ?? 1) - 1) % ACCENTS.length]
+  const name = collection.name
+  const description = collection.description ?? ''
+  const atmosphericText = collection.description ?? ''
+  const feeling = description.split('.')[0]?.trim() ?? ''
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
@@ -150,12 +172,14 @@ export default function CollectionDetail({ openWizard }) {
             {name}
           </h1>
 
-          <p style={{
-            fontFamily: 'var(--display)', fontStyle: 'italic',
-            color: accent, fontSize: 'clamp(18px,2.5vw,28px)', marginTop: 16,
-          }}>
-            {feeling}
-          </p>
+          {feeling && (
+            <p style={{
+              fontFamily: 'var(--display)', fontStyle: 'italic',
+              color: accent, fontSize: 'clamp(18px,2.5vw,28px)', marginTop: 16,
+            }}>
+              {feeling}
+            </p>
+          )}
 
           <p style={{
             fontFamily: 'var(--sans)', color: 'var(--ink-soft)',
@@ -199,7 +223,7 @@ export default function CollectionDetail({ openWizard }) {
                 fontFamily: 'var(--display)', fontSize: 48,
                 fontWeight: 300, color: accent, lineHeight: 1,
               }}>
-                {stars.length} stars in this constellation
+                {movies.length} stars in this constellation
               </div>
               <p style={{
                 fontFamily: 'var(--sans)', color: 'var(--ink-soft)',
@@ -248,7 +272,7 @@ export default function CollectionDetail({ openWizard }) {
               textTransform: 'uppercase',
               marginBottom: '32px',
             }}>
-              "{stars.length} stars await in this constellation."
+              "{movies.length} stars await in this constellation."
             </p>
           </div>
 
@@ -261,12 +285,17 @@ export default function CollectionDetail({ openWizard }) {
             borderRadius: 16,
             overflow: 'hidden',
           }}>
-            {stars.map((star, index) => (
+            {movies.map((movie) => (
               <StarCard
-                key={star.title}
-                star={star}
+                key={movie.id}
+                star={{
+                  title: movie.title,
+                  year: String(movie.year ?? ''),
+                  director: movie.genres?.[0] ?? '—',
+                  feeling: Array.isArray(movie.tone) ? movie.tone[0] : (movie.tone ?? '—'),
+                }}
                 accent={accent}
-                to={`/movie/${slug}-${index}`}
+                to={`/movie/${movie.id}`}
               />
             ))}
           </div>

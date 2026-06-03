@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import CONSTELLATIONS from '../data/constellations'
+import { useCollections } from '../hooks/useCollections'
+
+const ACCENTS = ['#7eb8d4','#9b7fd4','#d4826a','#7dd4a0','#d4c26a','#d47eb8']
 
 const GLYPHS = [
   { dots: [[18,88],[44,58],[80,40],[116,52],[142,80],[156,104]], lines: [[0,1],[1,2],[2,3],[3,4],[4,5]] },
@@ -32,11 +34,17 @@ function ConstellationGlyph({ glyph, accent }) {
   )
 }
 
-function ConstellationCard({ con, index }) {
+function ConstellationCard({ col, index }) {
   const [hovered, setHovered] = useState(false)
+  const accent = ACCENTS[index % ACCENTS.length]
+  const glyph = GLYPHS[index % GLYPHS.length]
+  const subtitle = col.description
+    ? col.description.length > 60 ? col.description.slice(0, 60) + '…' : col.description
+    : ''
+
   return (
     <Link
-      to={`/collections/${con.slug}`}
+      to={`/collections/${col.slug}`}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
     >
       <div
@@ -54,20 +62,20 @@ function ConstellationCard({ con, index }) {
           cursor: 'pointer',
         }}
       >
-        <ConstellationGlyph glyph={GLYPHS[index]} accent={con.accent} />
+        <ConstellationGlyph glyph={glyph} accent={accent} />
 
         <div style={{
           fontFamily: 'var(--display)', fontWeight: 300,
           fontSize: 28, lineHeight: 1.1, color: 'var(--ink)',
         }}>
-          {con.name}
+          {col.name}
         </div>
 
         <div style={{
           fontFamily: 'var(--display)', fontStyle: 'italic',
-          fontSize: 16, color: con.accent,
+          fontSize: 16, color: accent,
         }}>
-          {con.feeling}
+          {subtitle}
         </div>
 
         <div style={{
@@ -81,7 +89,7 @@ function ConstellationCard({ con, index }) {
             textTransform: 'uppercase', letterSpacing: '0.2em',
             color: 'var(--ink-faint)',
           }}>
-            {con.stars.length} stars
+            — stars
           </span>
           <span style={{
             color: hovered ? 'var(--gold)' : 'var(--ink-faint)',
@@ -97,6 +105,8 @@ function ConstellationCard({ con, index }) {
 }
 
 export default function Collections({ openWizard }) {
+  const { collections, loading, error } = useCollections()
+
   useEffect(() => {
     const els = document.querySelectorAll('.obs')
     const observer = new IntersectionObserver(
@@ -105,7 +115,7 @@ export default function Collections({ openWizard }) {
     )
     els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
-  }, [])
+  }, [loading])
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
@@ -136,21 +146,39 @@ export default function Collections({ openWizard }) {
 
       {/* ── Constellation Grid ── */}
       <section style={{ padding: '80px 0 120px' }}>
-        <div className="shell">
-          <div className="obs" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-            gap: 1,
-            background: 'var(--line)',
-            border: '1px solid var(--line)',
-            borderRadius: 16,
-            overflow: 'hidden',
+        {loading ? (
+          <div className="shell" style={{
+            padding: '80px 0', textAlign: 'center',
+            color: 'var(--ink-mute)', fontFamily: 'var(--sans)',
+            fontSize: '13px', letterSpacing: '0.2em', textTransform: 'uppercase',
           }}>
-            {CONSTELLATIONS.map((con, i) => (
-              <ConstellationCard key={con.slug} con={con} index={i} />
-            ))}
+            Mapping the sky…
           </div>
-        </div>
+        ) : error ? (
+          <div className="shell" style={{
+            padding: '80px 0', textAlign: 'center',
+            color: 'var(--ink-mute)', fontFamily: 'var(--sans)',
+            fontSize: '13px', letterSpacing: '0.2em', textTransform: 'uppercase',
+          }}>
+            The sky is unreachable. Please try again.
+          </div>
+        ) : (
+          <div className="shell">
+            <div className="obs" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gap: 1,
+              background: 'var(--line)',
+              border: '1px solid var(--line)',
+              borderRadius: 16,
+              overflow: 'hidden',
+            }}>
+              {collections.map((col, i) => (
+                <ConstellationCard key={col.slug} col={col} index={i} />
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <Footer />
