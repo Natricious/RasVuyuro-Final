@@ -10,7 +10,7 @@ export default function Nav() {
       <div className="nav-links">
         <Link to="/movies" className="nav-link">Wander</Link>
         <a href="#collections" className="nav-link">Constellations</a>
-        <a href="#" className="nav-link nav-pill">Begin the Alignment</a>
+        <button className="nav-link nav-pill" onClick={e => e.preventDefault()}>Begin the Alignment</button>
       </div>
     </nav>
   )
