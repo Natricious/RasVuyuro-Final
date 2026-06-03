@@ -1,4 +1,4 @@
-export default function Hero() {
+export default function Hero({ onBeginAlignment }) {
   return (
     <section className="hero">
       <div className="eyebrow">Good evening · the sky is at its darkest</div>
@@ -17,7 +17,7 @@ export default function Hero() {
       </p>
 
       <div className="hero-cta">
-        <button className="btn btn-gold">Begin the Alignment</button>
+        <button className="btn btn-gold" onClick={onBeginAlignment}>Begin the Alignment</button>
         <button className="hero-ghost">or wander the sky →</button>
       </div>
 

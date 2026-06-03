@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export default function Nav() {
+export default function Nav({ onBeginAlignment }) {
   return (
     <nav className="nav">
       <Link to="/" className="nav-brand">
@@ -10,7 +10,7 @@ export default function Nav() {
       <div className="nav-links">
         <Link to="/movies" className="nav-link">Wander</Link>
         <a href="#collections" className="nav-link">Constellations</a>
-        <button className="nav-link nav-pill" onClick={e => e.preventDefault()}>Begin the Alignment</button>
+        <button className="nav-link nav-pill" onClick={onBeginAlignment}>Begin the Alignment</button>
       </div>
     </nav>
   )
