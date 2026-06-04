@@ -1,25 +1,69 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 
-const KEY = 'rv_watchlist'
+const LS_KEY = 'rv_watchlist'
 
 export function useWatchlist() {
-  const [watchlist, setWatchlist] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(KEY)) || [] } catch { return [] }
-  })
+  const { user } = useAuth()
+  const [watchlistIds, setWatchlistIds] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(watchlist))
-  }, [watchlist])
+    if (user) {
+      console.log('[useWatchlist] USER', user?.id, user?.email)
+      setWatchlistIds([])
+      setLoading(true)
+      supabase
+        .from('user_lists')
+        .select('movie_id')
+        .eq('user_id', user.id)
+        .in('list_type', ['to_watch', 'watchlist'])
+        .then(({ data }) => {
+          console.log('[useWatchlist] Supabase rows:', data)
+          setWatchlistIds(data ? data.map(r => r.movie_id) : [])
+          setLoading(false)
+        })
+    } else {
+      try {
+        const stored = JSON.parse(localStorage.getItem(LS_KEY)) || []
+        setWatchlistIds(stored.map(m => m.id || m))
+      } catch { setWatchlistIds([]) }
+    }
+  }, [user?.id])
 
-  const isInWatchlist = (id) => watchlist.some(m => m.id === id)
+  const isInWatchlist = (id) => watchlistIds.includes(Number(id))
 
-  const toggleWatchlist = (movie) => {
-    setWatchlist(prev =>
-      prev.some(m => m.id === movie.id)
-        ? prev.filter(m => m.id !== movie.id)
-        : [{ id: movie.id, title: movie.title, year: movie.year, poster: movie.poster, imdb_rating: movie.imdb_rating }, ...prev]
-    )
+  const toggleWatchlist = async (movie) => {
+    const movieId = Number(movie.id)
+    if (user) {
+      if (isInWatchlist(movieId)) {
+        await supabase.from('user_lists').delete()
+          .eq('user_id', user.id).eq('movie_id', movieId).in('list_type', ['to_watch', 'watchlist'])
+        setWatchlistIds(prev => prev.filter(id => id !== movieId))
+      } else {
+        console.log('[Watchlist INSERT]', { userId: user?.id, movieId, listType: 'to_watch' })
+        const { data, error } = await supabase.from('user_lists').insert({ user_id: user.id, movie_id: movieId, list_type: 'to_watch' })
+        console.log('[Watchlist RESULT]', {
+          data,
+          error,
+          code: error?.code,
+          message: error?.message,
+          details: error?.details,
+          hint: error?.hint
+        })
+        setWatchlistIds(prev => [...prev, movieId])
+      }
+    } else {
+      const stored = JSON.parse(localStorage.getItem(LS_KEY)) || []
+      const exists = stored.some(m => (m.id || m) === movieId)
+      const updated = exists
+        ? stored.filter(m => (m.id || m) !== movieId)
+        : [{ id: movieId, title: movie.title, year: movie.year, poster: movie.poster, imdb_rating: movie.imdb_rating }, ...stored]
+      localStorage.setItem(LS_KEY, JSON.stringify(updated))
+      setWatchlistIds(updated.map(m => m.id || m))
+    }
   }
 
-  return { watchlist, isInWatchlist, toggleWatchlist }
+  return { watchlistIds, isInWatchlist, toggleWatchlist, loading }
 }

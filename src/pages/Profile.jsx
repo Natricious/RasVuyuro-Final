@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useFavorites } from '../hooks/useFavorites'
 import { useWatchlist } from '../hooks/useWatchlist'
 import { useRecentlyViewed } from '../hooks/useRecentlyViewed'
+import { useWatched } from '../hooks/useWatched'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
 function MovieCard({ movie }) {
   const [hovered, setHovered] = useState(false)
@@ -66,9 +68,80 @@ function ProfileSection({ title, subtitle, emptyMsg, items }) {
 
 export default function Profile({ openWizard }) {
   const { user } = useAuth()
-  const { favorites } = useFavorites()
-  const { watchlist } = useWatchlist()
-  const { recentlyViewed } = useRecentlyViewed()
+  console.log('[Profile] USER', user?.id, user?.email)
+  const { favoriteIds } = useFavorites()
+  const { watchlistIds } = useWatchlist()
+  const { recentIds } = useRecentlyViewed()
+  const { watchedIds } = useWatched()
+
+  const [favoriteMovies, setFavoriteMovies] = useState([])
+  const [watchlistMovies, setWatchlistMovies] = useState([])
+  const [recentMovies, setRecentMovies] = useState([])
+  const [watchedMovies, setWatchedMovies] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    if (user && favoriteIds.length > 0) {
+      console.log('[Profile Favorites] ids:', favoriteIds)
+      supabase.from('movies').select('id, title, year, imdb_rating, poster')
+        .in('id', favoriteIds)
+        .then(({ data }) => {
+          console.log('[Profile Favorites] returned:', data?.map(m => m.id), 'count:', data?.length)
+          if (!cancelled) setFavoriteMovies(data || [])
+        })
+    } else {
+      setFavoriteMovies([])
+    }
+    return () => { cancelled = true }
+  }, [user?.id, favoriteIds.join(',')])
+
+  useEffect(() => {
+    let cancelled = false
+    if (user && watchlistIds.length > 0) {
+      console.log('[Profile Planned] ids:', watchlistIds)
+      supabase.from('movies').select('id, title, year, imdb_rating, poster')
+        .in('id', watchlistIds)
+        .then(({ data }) => {
+          console.log('[Profile Planned] returned:', data?.map(m => m.id), 'count:', data?.length)
+          if (!cancelled) setWatchlistMovies(data || [])
+        })
+    } else {
+      setWatchlistMovies([])
+    }
+    return () => { cancelled = true }
+  }, [user?.id, watchlistIds.join(',')])
+
+  useEffect(() => {
+    let cancelled = false
+    if (user && recentIds.length > 0) {
+      supabase.from('movies').select('id, title, year, imdb_rating, poster')
+        .in('id', recentIds)
+        .then(({ data }) => {
+          const ordered = recentIds.map(id => data?.find(m => m.id === id)).filter(Boolean)
+          if (!cancelled) setRecentMovies(ordered)
+        })
+    } else {
+      setRecentMovies([])
+    }
+    return () => { cancelled = true }
+  }, [user?.id, recentIds.join(',')])
+
+  useEffect(() => {
+    let cancelled = false
+    if (user && watchedIds.length > 0) {
+      console.log('[Profile Watched] ids:', watchedIds)
+      supabase.from('movies').select('id, title, year, imdb_rating, poster')
+        .in('id', watchedIds)
+        .then(({ data }) => {
+          console.log('[Profile Watched] returned:', data?.map(m => m.id), 'count:', data?.length)
+          const ordered = watchedIds.map(id => data?.find(m => m.id === id)).filter(Boolean)
+          if (!cancelled) setWatchedMovies(ordered)
+        })
+    } else {
+      setWatchedMovies([])
+    }
+    return () => { cancelled = true }
+  }, [user?.id, watchedIds.join(',')])
 
   if (!user) {
     return (
@@ -128,7 +201,7 @@ export default function Profile({ openWizard }) {
           </div>
 
           <p style={{ fontFamily: 'var(--sans)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'var(--ink-mute)' }}>
-            {favorites.length} favorites · {watchlist.length} in watchlist · {recentlyViewed.length} recently viewed
+            {favoriteIds.length} favorites · {watchedIds.length} watched · {watchlistIds.length} planned
           </p>
         </div>
       </section>
@@ -139,19 +212,19 @@ export default function Profile({ openWizard }) {
         title="Favorites"
         subtitle="Films you've marked as favourites."
         emptyMsg="No favourites yet. Start exploring the sky."
-        items={favorites}
+        items={favoriteMovies}
       />
       <ProfileSection
-        title="Watchlist"
+        title="Watched"
+        subtitle="Films you've marked as watched."
+        emptyMsg="You haven't marked any films as watched yet."
+        items={watchedMovies}
+      />
+      <ProfileSection
+        title="Plan To Watch"
         subtitle="Films you want to watch."
-        emptyMsg="Your watchlist is empty. Find something worth watching."
-        items={watchlist}
-      />
-      <ProfileSection
-        title="Recently Viewed"
-        subtitle="Stars you've visited."
-        emptyMsg="You haven't visited any stars yet."
-        items={recentlyViewed}
+        emptyMsg="Your plan to watch list is empty."
+        items={watchlistMovies}
       />
 
       <Footer />

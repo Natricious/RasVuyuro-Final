@@ -9,11 +9,14 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AuthContext] setUser —', session?.user?.id ?? 'null', 'time:', Date.now())
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('[AuthContext] onAuthStateChange — event:', _event, 'userId:', session?.user?.id, 'time:', Date.now())
+      console.log('[AuthContext] setUser —', session?.user?.id ?? 'null', 'time:', Date.now())
       setUser(session?.user ?? null)
     })
 

@@ -6,6 +6,7 @@ import { useMovie } from '../hooks/useMovie'
 import { useFavorites } from '../hooks/useFavorites'
 import { useWatchlist } from '../hooks/useWatchlist'
 import { useRecentlyViewed } from '../hooks/useRecentlyViewed'
+import { useWatched } from '../hooks/useWatched'
 
 const ACCENTS = ['#7eb8d4','#9b7fd4','#d4826a','#7dd4a0','#d4c26a','#d47eb8']
 
@@ -105,6 +106,7 @@ export default function MovieDetail({ openWizard }) {
   const { isFavorite, toggleFavorite } = useFavorites()
   const { isInWatchlist, toggleWatchlist } = useWatchlist()
   const { addToRecent } = useRecentlyViewed()
+  const { isWatched, toggleWatched } = useWatched()
 
   useEffect(() => {
     if (movie) addToRecent(movie)
@@ -304,7 +306,25 @@ export default function MovieDetail({ openWizard }) {
                 cursor: 'pointer', transition: 'all 0.3s var(--ease)',
               }}
             >
-              {isFavorite(movie.id) ? '♡ Favorited' : '♡ Add to Favorites'}
+              {isFavorite(movie.id) ? '❤ Favorited' : '❤ Favourite'}
+            </button>
+
+            {console.log('[MovieDetail]', {
+              movieId: movie?.id,
+              watched: movie ? isWatched(movie.id) : null
+            })}
+            <button
+              onClick={() => toggleWatched(movie)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px',
+                background: isWatched(movie.id) ? 'rgba(125,212,160,0.1)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isWatched(movie.id) ? '#7dd4a0' : 'var(--line-strong)'}`,
+                borderRadius: 999, color: isWatched(movie.id) ? '#7dd4a0' : 'var(--ink-soft)',
+                fontFamily: 'var(--sans)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
+                cursor: 'pointer', transition: 'all 0.3s var(--ease)',
+              }}
+            >
+              {isWatched(movie.id) ? '✓ Watched' : '✓ Mark Watched'}
             </button>
 
             <button
@@ -318,7 +338,7 @@ export default function MovieDetail({ openWizard }) {
                 cursor: 'pointer', transition: 'all 0.3s var(--ease)',
               }}
             >
-              {isInWatchlist(movie.id) ? '✦ In Watchlist' : '✦ Add to Watchlist'}
+              {isInWatchlist(movie.id) ? '⏳ Planned' : '⏳ Plan To Watch'}
             </button>
 
             {movie.imdb_id && (
