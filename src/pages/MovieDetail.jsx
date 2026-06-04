@@ -236,6 +236,17 @@ export default function MovieDetail({ openWizard }) {
             {title}
           </h1>
 
+          {movie.title_ge && movie.title_ge !== movie.title && (
+            <p style={{
+              fontFamily: 'var(--display)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(16px,2vw,22px)',
+              color: 'var(--ink-mute)',
+              marginTop: 8,
+              letterSpacing: '0.01em',
+            }}>{movie.title_ge}</p>
+          )}
+
           <div style={{
             display: 'flex', alignItems: 'center', gap: 24,
             marginTop: 20,
@@ -244,6 +255,12 @@ export default function MovieDetail({ openWizard }) {
             color: 'var(--ink-mute)',
           }}>
             <span>{year}</span>
+            {movie.imdb_rating && (
+              <>
+                <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--ink-faint)', flexShrink: 0 }} />
+                <span>★ {movie.imdb_rating}</span>
+              </>
+            )}
             <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--ink-faint)', flexShrink: 0 }} />
             <span>{director}</span>
           </div>
@@ -254,6 +271,26 @@ export default function MovieDetail({ openWizard }) {
           }}>
             {description}
           </p>
+
+          {(() => {
+            const themesArr = Array.isArray(movie.themes) ? movie.themes : (movie.themes ? [movie.themes] : [])
+            return themesArr.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 20 }}>
+                {themesArr.map(theme => (
+                  <span key={theme} style={{
+                    padding: '4px 12px',
+                    border: '1px solid var(--line-strong)',
+                    borderRadius: 999,
+                    fontSize: 11,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'var(--ink-soft)',
+                    fontFamily: 'var(--sans)',
+                  }}>{theme}</span>
+                ))}
+              </div>
+            ) : null
+          })()}
 
           <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
             <button
@@ -283,6 +320,33 @@ export default function MovieDetail({ openWizard }) {
             >
               {isInWatchlist(movie.id) ? '✦ In Watchlist' : '✦ Add to Watchlist'}
             </button>
+
+            {movie.imdb_id && (
+              <a
+                href={`https://www.imdb.com/title/${movie.imdb_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 24px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--line-strong)',
+                  borderRadius: 999,
+                  color: 'var(--ink-soft)',
+                  fontFamily: 'var(--sans)',
+                  fontSize: 12,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s var(--ease)',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.color = 'var(--gold)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--line-strong)'; e.currentTarget.style.color = 'var(--ink-soft)' }}
+              >
+                View on IMDb →
+              </a>
+            )}
           </div>
         </div>
       </section>

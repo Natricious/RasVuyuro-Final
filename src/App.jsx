@@ -8,6 +8,7 @@ import MovieDetail from './pages/MovieDetail'
 import Collections from './pages/Collections'
 import CollectionDetail from './pages/CollectionDetail'
 import Profile from './pages/Profile'
+import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 
 function ScrollToTop() {
@@ -46,6 +47,7 @@ function App() {
         <Route path="/collections" element={<Collections openWizard={openWizard} />} />
         <Route path="/collections/:slug" element={<CollectionDetail openWizard={openWizard} />} />
         <Route path="/profile" element={<Profile openWizard={openWizard} />} />
+        <Route path="/login" element={<Login openWizard={openWizard} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <WizardPanel isOpen={wizardOpen} onClose={() => setWizardOpen(false)} />

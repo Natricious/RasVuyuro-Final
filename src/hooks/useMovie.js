@@ -23,17 +23,45 @@ export function useMovie(id) {
       if (err || !data) { setError(err || new Error('Not found')); setLoading(false); return }
       setMovie(data)
 
+      // Tier 1 — similar_movies field
+      if (data.similar_movies && Array.isArray(data.similar_movies) && data.similar_movies.length > 0) {
+        const { data: similarData } = await supabase
+          .from('movies')
+          .select('id, title, year, imdb_rating, genres, poster, tone, collections')
+          .in('id', data.similar_movies.slice(0, 6))
+          .order('imdb_rating', { ascending: false })
+        if (!cancelled && similarData && similarData.length > 0) {
+          setNearby(similarData)
+          setLoading(false)
+          return
+        }
+      }
+
+      // Tier 2 — same collection
       if (data.collections && data.collections.length > 0) {
         const firstCollection = Array.isArray(data.collections) ? data.collections[0] : data.collections
-        const { data: nearbyData } = await supabase
+        const { data: colData } = await supabase
           .from('movies')
           .select('id, title, year, imdb_rating, genres, poster, tone, collections')
           .contains('collections', [firstCollection])
           .neq('id', id)
           .order('imdb_rating', { ascending: false })
-          .limit(3)
-        if (!cancelled && nearbyData) setNearby(nearbyData)
+          .limit(6)
+        if (!cancelled && colData && colData.length > 0) {
+          setNearby(colData)
+          setLoading(false)
+          return
+        }
       }
+
+      // Tier 3 — top rated fallback
+      const { data: topData } = await supabase
+        .from('movies')
+        .select('id, title, year, imdb_rating, genres, poster, tone, collections')
+        .neq('id', id)
+        .order('imdb_rating', { ascending: false })
+        .limit(6)
+      if (!cancelled && topData) setNearby(topData)
 
       setLoading(false)
     }

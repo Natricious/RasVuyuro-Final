@@ -5,6 +5,7 @@ import Footer from '../components/Footer'
 import { useFavorites } from '../hooks/useFavorites'
 import { useWatchlist } from '../hooks/useWatchlist'
 import { useRecentlyViewed } from '../hooks/useRecentlyViewed'
+import { useAuth } from '../context/AuthContext'
 
 function MovieCard({ movie }) {
   const [hovered, setHovered] = useState(false)
@@ -64,9 +65,40 @@ function ProfileSection({ title, subtitle, emptyMsg, items }) {
 }
 
 export default function Profile({ openWizard }) {
+  const { user } = useAuth()
   const { favorites } = useFavorites()
   const { watchlist } = useWatchlist()
   const { recentlyViewed } = useRecentlyViewed()
+
+  if (!user) {
+    return (
+      <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
+        <Nav onBeginAlignment={openWizard} />
+
+        <section style={{ padding: '200px 0', textAlign: 'center' }}>
+          <div className="shell">
+            <div className="eyebrow">Your Sky</div>
+            <h2 style={{ fontFamily: 'var(--display)', fontWeight: 300, fontSize: 'clamp(28px,4vw,48px)', color: 'var(--ink)', marginTop: 12 }}>
+              Sign in to access your sky.
+            </h2>
+            <p style={{ fontFamily: 'var(--sans)', color: 'var(--ink-soft)', fontSize: 16, marginTop: 16, maxWidth: '40ch', marginLeft: 'auto', marginRight: 'auto' }}>
+              Your favorites, watchlist, and recently viewed stars are waiting.
+            </p>
+            <div className="gold-rule" style={{ margin: '32px auto', maxWidth: 200 }} />
+            <Link to="/login" className="btn btn-gold" style={{ display: 'inline-block', textDecoration: 'none', marginTop: 8 }}>
+              Sign In to Your Sky
+            </Link>
+            <p style={{ fontFamily: 'var(--sans)', color: 'var(--ink-mute)', fontSize: 13, marginTop: 16 }}>
+              New here?{' '}
+              <Link to="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Create an account</Link>
+            </p>
+          </div>
+        </section>
+
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', zIndex: 1 }}>
@@ -82,7 +114,20 @@ export default function Profile({ openWizard }) {
           <p style={{ fontFamily: 'var(--sans)', color: 'var(--ink-soft)', fontSize: 17, marginTop: 16 }}>
             Every film you've touched leaves a trace.
           </p>
-          <p style={{ fontFamily: 'var(--sans)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'var(--ink-mute)', marginTop: 32 }}>
+
+          <div style={{ marginBottom: 32, marginTop: 32 }}>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--ink-mute)' }}>
+              Signed in as
+            </p>
+            <p style={{ fontFamily: 'var(--display)', fontStyle: 'italic', fontSize: 20, color: 'var(--ink)', marginTop: 4 }}>
+              {user.email}
+            </p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '4px 12px', border: '1px solid var(--gold-deep)', borderRadius: 999, fontSize: 11, color: 'var(--gold)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              ✦ Active
+            </div>
+          </div>
+
+          <p style={{ fontFamily: 'var(--sans)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'var(--ink-mute)' }}>
             {favorites.length} favorites · {watchlist.length} in watchlist · {recentlyViewed.length} recently viewed
           </p>
         </div>
