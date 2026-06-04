@@ -45,7 +45,7 @@ function App() {
         <Route path="/movie/:id" element={<MovieDetail openWizard={openWizard} />} />
         <Route path="/collections" element={<Collections openWizard={openWizard} />} />
         <Route path="/collections/:slug" element={<CollectionDetail openWizard={openWizard} />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<Profile openWizard={openWizard} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <WizardPanel isOpen={wizardOpen} onClose={() => setWizardOpen(false)} />

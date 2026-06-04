@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useMovie } from '../hooks/useMovie'
+import { useFavorites } from '../hooks/useFavorites'
+import { useWatchlist } from '../hooks/useWatchlist'
+import { useRecentlyViewed } from '../hooks/useRecentlyViewed'
 
 const ACCENTS = ['#7eb8d4','#9b7fd4','#d4826a','#7dd4a0','#d4c26a','#d47eb8']
 
@@ -99,6 +102,13 @@ const STATE_STYLE = {
 export default function MovieDetail({ openWizard }) {
   const { id } = useParams()
   const { movie, nearby, loading, error } = useMovie(id)
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const { isInWatchlist, toggleWatchlist } = useWatchlist()
+  const { addToRecent } = useRecentlyViewed()
+
+  useEffect(() => {
+    if (movie) addToRecent(movie)
+  }, [movie?.id])
 
   useEffect(() => {
     const els = document.querySelectorAll('.obs')
@@ -244,6 +254,36 @@ export default function MovieDetail({ openWizard }) {
           }}>
             {description}
           </p>
+
+          <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => toggleFavorite(movie)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px',
+                background: isFavorite(movie.id) ? 'var(--gold-glow)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isFavorite(movie.id) ? 'var(--gold)' : 'var(--line-strong)'}`,
+                borderRadius: 999, color: isFavorite(movie.id) ? 'var(--gold)' : 'var(--ink-soft)',
+                fontFamily: 'var(--sans)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
+                cursor: 'pointer', transition: 'all 0.3s var(--ease)',
+              }}
+            >
+              {isFavorite(movie.id) ? '♡ Favorited' : '♡ Add to Favorites'}
+            </button>
+
+            <button
+              onClick={() => toggleWatchlist(movie)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px',
+                background: isInWatchlist(movie.id) ? 'var(--gold-glow)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isInWatchlist(movie.id) ? 'var(--gold-deep)' : 'var(--line-strong)'}`,
+                borderRadius: 999, color: isInWatchlist(movie.id) ? 'var(--gold-bright)' : 'var(--ink-soft)',
+                fontFamily: 'var(--sans)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
+                cursor: 'pointer', transition: 'all 0.3s var(--ease)',
+              }}
+            >
+              {isInWatchlist(movie.id) ? '✦ In Watchlist' : '✦ Add to Watchlist'}
+            </button>
+          </div>
         </div>
       </section>
 
