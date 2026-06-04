@@ -11,7 +11,6 @@ export function useWatchlist() {
 
   useEffect(() => {
     if (user) {
-      console.log('[useWatchlist] USER', user?.id, user?.email)
       setWatchlistIds([])
       setLoading(true)
       supabase
@@ -20,7 +19,6 @@ export function useWatchlist() {
         .eq('user_id', user.id)
         .in('list_type', ['to_watch', 'watchlist'])
         .then(({ data }) => {
-          console.log('[useWatchlist] Supabase rows:', data)
           setWatchlistIds(data ? data.map(r => r.movie_id) : [])
           setLoading(false)
         })
@@ -42,16 +40,7 @@ export function useWatchlist() {
           .eq('user_id', user.id).eq('movie_id', movieId).in('list_type', ['to_watch', 'watchlist'])
         setWatchlistIds(prev => prev.filter(id => id !== movieId))
       } else {
-        console.log('[Watchlist INSERT]', { userId: user?.id, movieId, listType: 'to_watch' })
-        const { data, error } = await supabase.from('user_lists').insert({ user_id: user.id, movie_id: movieId, list_type: 'to_watch' })
-        console.log('[Watchlist RESULT]', {
-          data,
-          error,
-          code: error?.code,
-          message: error?.message,
-          details: error?.details,
-          hint: error?.hint
-        })
+        await supabase.from('user_lists').insert({ user_id: user.id, movie_id: movieId, list_type: 'to_watch' })
         setWatchlistIds(prev => [...prev, movieId])
       }
     } else {

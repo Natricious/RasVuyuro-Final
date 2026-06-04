@@ -11,7 +11,6 @@ export function useFavorites() {
 
   useEffect(() => {
     if (user) {
-      console.log('[useFavorites] USER', user?.id, user?.email)
       setFavoriteIds([])
       setLoading(true)
       supabase
@@ -20,7 +19,6 @@ export function useFavorites() {
         .eq('user_id', user.id)
         .eq('list_type', 'favorite')
         .then(({ data }) => {
-          console.log('[useFavorites] Supabase rows:', data)
           setFavoriteIds(data ? data.map(r => r.movie_id) : [])
           setLoading(false)
         })
@@ -42,16 +40,7 @@ export function useFavorites() {
           .eq('user_id', user.id).eq('movie_id', movieId).eq('list_type', 'favorite')
         setFavoriteIds(prev => prev.filter(id => id !== movieId))
       } else {
-        console.log('[Favorite INSERT]', { userId: user?.id, movieId, listType: 'favorite' })
-        const { data, error } = await supabase.from('user_lists').insert({ user_id: user.id, movie_id: movieId, list_type: 'favorite' })
-        console.log('[Favorite RESULT]', {
-          data,
-          error,
-          code: error?.code,
-          message: error?.message,
-          details: error?.details,
-          hint: error?.hint
-        })
+        await supabase.from('user_lists').insert({ user_id: user.id, movie_id: movieId, list_type: 'favorite' })
         setFavoriteIds(prev => [...prev, movieId])
       }
     } else {

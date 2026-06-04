@@ -7,7 +7,6 @@ const MAX = 20
 
 export function useWatched() {
   const { user } = useAuth()
-  console.log('[useWatched RENDER]', { userId: user?.id })
   const [watchedIds, setWatchedIds] = useState([])
   const [loading, setLoading] = useState(false)
 

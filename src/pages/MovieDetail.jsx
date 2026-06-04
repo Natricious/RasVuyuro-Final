@@ -309,10 +309,6 @@ export default function MovieDetail({ openWizard }) {
               {isFavorite(movie.id) ? '❤ Favorited' : '❤ Favourite'}
             </button>
 
-            {console.log('[MovieDetail]', {
-              movieId: movie?.id,
-              watched: movie ? isWatched(movie.id) : null
-            })}
             <button
               onClick={() => toggleWatched(movie)}
               style={{

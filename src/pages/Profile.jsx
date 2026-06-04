@@ -68,7 +68,6 @@ function ProfileSection({ title, subtitle, emptyMsg, items }) {
 
 export default function Profile({ openWizard }) {
   const { user } = useAuth()
-  console.log('[Profile] USER', user?.id, user?.email)
   const { favoriteIds } = useFavorites()
   const { watchlistIds } = useWatchlist()
   const { recentIds } = useRecentlyViewed()
@@ -82,11 +81,9 @@ export default function Profile({ openWizard }) {
   useEffect(() => {
     let cancelled = false
     if (user && favoriteIds.length > 0) {
-      console.log('[Profile Favorites] ids:', favoriteIds)
       supabase.from('movies').select('id, title, year, imdb_rating, poster')
         .in('id', favoriteIds)
         .then(({ data }) => {
-          console.log('[Profile Favorites] returned:', data?.map(m => m.id), 'count:', data?.length)
           if (!cancelled) setFavoriteMovies(data || [])
         })
     } else {
@@ -98,11 +95,9 @@ export default function Profile({ openWizard }) {
   useEffect(() => {
     let cancelled = false
     if (user && watchlistIds.length > 0) {
-      console.log('[Profile Planned] ids:', watchlistIds)
       supabase.from('movies').select('id, title, year, imdb_rating, poster')
         .in('id', watchlistIds)
         .then(({ data }) => {
-          console.log('[Profile Planned] returned:', data?.map(m => m.id), 'count:', data?.length)
           if (!cancelled) setWatchlistMovies(data || [])
         })
     } else {
@@ -129,11 +124,9 @@ export default function Profile({ openWizard }) {
   useEffect(() => {
     let cancelled = false
     if (user && watchedIds.length > 0) {
-      console.log('[Profile Watched] ids:', watchedIds)
       supabase.from('movies').select('id, title, year, imdb_rating, poster')
         .in('id', watchedIds)
         .then(({ data }) => {
-          console.log('[Profile Watched] returned:', data?.map(m => m.id), 'count:', data?.length)
           const ordered = watchedIds.map(id => data?.find(m => m.id === id)).filter(Boolean)
           if (!cancelled) setWatchedMovies(ordered)
         })
